@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Panel</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="user-container">
+        <header>
+            <h1>Welcome, {{.FullName}}</h1>
+            <a href="/logout" class="logout">Logout</a>
+        </header>
+
+        <div class="user-info">
+            <p>Login: {{.Login}}</p>
+            <p>Birth Date: {{.BirthDate}}</p>
+            <p>Gender: {{.Gender}}</p>
+            <p>Bookings left: {{sub 3 .BookingCount}}</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="bookings">My Bookings</button>
+            <button class="tab-btn" data-tab="new-booking">New Booking</button>
+        </div>
+
+        <div class="tab-content active" id="bookings">
+            <h2>My Bookings</h2>
+            <ul class="booking-list">
+                {{range .Bookings}}
+                <li>
+                    <span>{{.Item.Name}} on {{.Slot.Date}} at {{.Slot.StartTime}}</span>
+                    <button class="cancel-btn" data-booking-id="{{.ID}}">Cancel</button>
+                </li>
+                {{end}}
+            </ul>
+        </div>
+
+        <div class="tab-content" id="new-booking">
+            <h2>New Booking</h2>
+            <div class="booking-steps">
+                <div class="step" id="step-dates">
+                    <h3>Select Date</h3>
+                    <ul class="date-list"></ul>
+                </div>
+                <div class="step hidden" id="step-items">
+                    <h3>Select Item</h3>
+                    <ul class="item-list"></ul>
+                </div>
+                <div class="step hidden" id="step-slots">
+                    <h3>Select Time Slot</h3>
+                    <ul class="slot-list"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="/static/js/script.js"></script>
+</body>
+</html>

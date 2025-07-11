@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manager Panel</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="manager-container">
+        <header>
+            <h1>Manager Panel</h1>
+            <a href="/logout" class="logout">Logout</a>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="users">Users</button>
+            <button class="tab-btn" data-tab="dates">Booking Dates</button>
+        </div>
+
+        <div class="tab-content active" id="users">
+            <h2>Manage Users</h2>
+            <form id="user-form" class="add-user">
+                <div class="form-group">
+                    <input type="text" id="user-login" name="login" placeholder="Login" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="user-password" name="password" placeholder="Password" required>
+                </div>
+                <div class="form-group">
+                    <input type="text" id="user-fullname" name="fullname" placeholder="Full Name" required>
+                </div>
+                <div class="form-group">
+                    <input type="date" id="user-birthdate" name="birthdate">
+                </div>
+                <div class="form-group">
+                    <select id="user-gender" name="gender">
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                    </select>
+                </div>
+                <button type="submit" id="add-user-btn" class="submit-btn">Add User</button>
+            </form>
+            
+            <div class="user-list-container">
+                <h3>Existing Users</h3>
+                <ul class="user-list">
+                    {{range .Users}}
+                    <li class="user-item" data-user-id="{{.ID}}">
+                        <span class="user-info">{{.Login}} ({{.FullName}}, {{.Gender}})</span>
+                        <button class="delete-btn" data-id="{{.ID}}" aria-label="Delete user">Delete</button>
+                    </li>
+                    {{end}}
+                </ul>
+            </div>
+        </div>
+
+        <div class="tab-content" id="dates">
+            <h2>Manage Booking Dates</h2>
+            <div class="date-controls">
+                <h3>Available Dates (next 7 days)</h3>
+                <ul class="date-list">
+                    {{range .AvailableDates}}
+                    <li class="date-item" data-date="{{.}}">
+                        <span class="date-value">{{.}}</span>
+                        <button class="toggle-date-btn" data-date="{{.}}">Disable</button>
+                    </li>
+                    {{end}}
+                </ul>
+            </div>
+            <div class="slot-controls">
+                <h3>Booking Items</h3>
+                <ul class="item-list">
+                    {{range .Items}}
+                    <li class="item" data-item-id="{{.ID}}">
+                        <span class="item-name">{{.Name}}</span>
+                    </li>
+                    {{end}}
+                </ul>
+                <div id="slot-list-container" class="slot-list"></div>
+            </div>
+        </div>
+    </div>
+    <script src="/static/js/script.js"></script>
+</body>
+</html>

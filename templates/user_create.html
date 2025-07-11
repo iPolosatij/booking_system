@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create User</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="form-container">
+        <h1>Create New User</h1>
+        <form id="create-user-form">
+            <input type="text" name="login" placeholder="Login" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <input type="text" name="full_name" placeholder="Full Name" required>
+            <input type="date" name="birth_date" required>
+            <select name="gender" required>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+            </select>
+            <button type="submit">Create User</button>
+        </form>
+    </div>
+    <script src="/static/js/script.js"></script>
+</body>
+</html>

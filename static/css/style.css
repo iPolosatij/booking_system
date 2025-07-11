@@ -1,0 +1,388 @@
+/* Basic reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background-color: #f5f5f5;
+    color: #222; /* Более темный цвет для лучшего контраста */
+    line-height: 1.6;
+}
+
+/* Login page */
+.login-container {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.login-container h1 {
+    margin-bottom: 20px;
+    color: #1a1a1a; /* Почти черный для заголовков */
+}
+
+.login-container input {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fff;
+    color: #222;
+}
+
+.login-container button {
+    width: 100%;
+    padding: 10px;
+    background: #2277b5; /* Более темный синий */
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.login-container button:hover {
+    background: #1a5d8a;
+}
+
+.error {
+    color: #c0392b; /* Более темный красный */
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+/* Admin panel */
+.admin-container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    color: #222;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.logout {
+    color: #c0392b;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.tabs {
+    display: flex;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ddd;
+}
+
+.tab-btn {
+    padding: 10px 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    color: #222;
+    font-weight: 600;
+}
+
+.tab-btn.active {
+    border-bottom-color: #2277b5;
+    color: #1a1a1a;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.add-manager, .add-item, .setting {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.add-manager input, .add-item input, .setting input {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fff;
+    color: #222;
+}
+
+button {
+    padding: 8px 15px;
+    background: #2277b5;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+button:hover {
+    background: #1a5d8a;
+}
+
+.delete-btn {
+    background: #c0392b;
+}
+
+.delete-btn:hover {
+    background: #a53126;
+}
+
+.manager-list, .item-list {
+    list-style: none;
+}
+
+.manager-list li, .item-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    color: #222;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .admin-container {
+        padding: 10px;
+    }
+    
+    .tabs {
+        flex-direction: column;
+    }
+    
+    .add-manager, .add-item, .setting {
+        flex-direction: column;
+    }
+}
+
+/* Manager specific styles */
+.manager-container {
+    max-width: 1000px;
+}
+
+.add-user {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.date-list li, .item-list li {
+    cursor: pointer;
+    padding: 8px;
+    border: 1px solid #ddd;
+    margin: 5px 0;
+    background-color: #fff;
+    color: #222;
+}
+
+.date-list li:hover, .item-list li:hover {
+    background-color: #f0f0f0;
+}
+
+/* User specific styles */
+.user-container {
+    max-width: 800px;
+}
+
+.user-info {
+    background: #f0f0f0;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    color: #222;
+}
+
+.booking-steps {
+    margin-top: 20px;
+}
+
+.step {
+    display: block;
+}
+
+.step.hidden {
+    display: none;
+}
+
+.booking-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    color: #222;
+}
+
+/* Form styles */
+.form-container {
+    max-width: 500px;
+    margin: 50px auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.form-container input,
+.form-container select {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fff;
+    color: #222;
+}
+
+/* Index page specific styles */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 0;
+    border-bottom: 1px solid #ddd;
+}
+
+.hero {
+    text-align: center;
+    padding: 60px 0;
+    background: #f0f0f0;
+    border-radius: 8px;
+    margin: 40px 0;
+}
+
+.hero h2 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    color: #1a1a1a;
+}
+
+.hero p {
+    font-size: 1.2rem;
+    color: #333;
+    margin-bottom: 30px;
+}
+
+.features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    margin: 60px 0;
+}
+
+.feature {
+    padding: 30px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(0,0,0,0.05);
+    text-align: center;
+}
+
+.feature h3 {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+    color: #1a1a1a;
+}
+
+.feature p {
+    color: #333;
+}
+
+footer {
+    text-align: center;
+    padding: 30px 0;
+    margin-top: 60px;
+    border-top: 1px solid #ddd;
+    color: #333;
+}
+
+/* Buttons */
+.btn {
+    display: inline-block;
+    padding: 10px 20px;
+    background: #2277b5;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    transition: background 0.3s;
+    font-weight: 600;
+}
+
+.btn:hover {
+    background: #1a5d8a;
+    color: white;
+}
+
+.btn.primary {
+    background: #27ae60;
+}
+
+.btn.primary:hover {
+    background: #219653;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .hero {
+        padding: 40px 20px;
+    }
+    
+    .hero h2 {
+        font-size: 2rem;
+    }
+    
+    .features {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Улучшение контраста для всех текстовых элементов */
+h1, h2, h3, h4, h5, h6 {
+    color: #1a1a1a;
+}
+
+p, span, li, a {
+    color: #222;
+}
+
+a:hover {
+    color: #1a5d8a;
+}
+
+/* Улучшение контраста для disabled элементов */
+:disabled {
+    background-color: #e0e0e0 !important;
+    color: #666 !important;
+    cursor: not-allowed;
+}
