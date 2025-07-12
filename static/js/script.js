@@ -1,59 +1,41 @@
+/**
+ * Booking System - Main JavaScript File
+ * Handles all client-side functionality
+ */
+
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM fully loaded and parsed');
+    console.log('Booking System initialized');
     
-    // Общие функции для всех страниц
+    // Initialize common components
     initTabs();
     initLogout();
-
-    // Инициализация специфичных для ролей функций
-    if (document.getElementById('add-user-btn')) {
-        console.log('Initializing user management');
-        initUserManagement();
-    }
+    initSettingsManagement();
     
-    if (document.getElementById('add-manager-btn')) {
-        console.log('Initializing manager management');
-        initManagerManagement();
-    }
-    
-    if (document.getElementById('add-item-btn')) {
-        console.log('Initializing item management');
-        initItemManagement();
-    }
-    
-    if (document.getElementById('save-settings-btn')) {
-        console.log('Initializing settings management');
-        initSettingsManagement();
-    }
-    
-    if (document.querySelector('.date-list')) {
-        console.log('Initializing date management');
-        initDateManagement();
-    }
-    
-    if (document.querySelector('.booking-list')) {
-        console.log('Initializing booking management');
-        initBookingManagement();
-    }
-    
-    if (document.querySelector('.item-list')) {
-        console.log('Initializing slot management');
-        initSlotManagement();
-    }
+    // Initialize role-specific components if they exist on page
+    if (document.getElementById('add-user-btn')) initUserManagement();
+    if (document.getElementById('add-manager-btn')) initManagerManagement();
+    if (document.getElementById('add-item-btn')) initItemManagement();
+    if (document.querySelector('.date-list')) initDateManagement();
+    if (document.querySelector('.booking-list')) initBookingManagement();
+    if (document.querySelector('.item-list')) initSlotManagement();
 });
 
-// Общие функции
+// ======================
+// CORE FUNCTIONS
+// ======================
+
+/**
+ * Initialize tab navigation
+ */
 function initTabs() {
-    console.log('Initializing tabs');
     const tabBtns = document.querySelectorAll('.tab-btn');
-    const tabContents = document.querySelectorAll('.tab-content');
-    
     tabBtns.forEach(btn => {
         btn.addEventListener('click', () => {
-            console.log('Tab button clicked:', btn.getAttribute('data-tab'));
-            tabBtns.forEach(b => b.classList.remove('active'));
-            tabContents.forEach(c => c.classList.remove('active'));
+            // Remove active classes from all tabs
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             
+            // Add active class to clicked tab
             btn.classList.add('active');
             const tabId = btn.getAttribute('data-tab');
             document.getElementById(tabId).classList.add('active');
@@ -61,418 +43,374 @@ function initTabs() {
     });
 }
 
+/**
+ * Initialize logout functionality
+ */
 function initLogout() {
-    console.log('Initializing logout');
     const logoutBtn = document.querySelector('.logout');
     if (logoutBtn) {
-        logoutBtn.addEventListener('click', function(e) {
+        logoutBtn.addEventListener('click', async (e) => {
             e.preventDefault();
-            console.log('Logout clicked');
-            fetch('/logout', {
-                method: 'GET',
-                credentials: 'same-origin'
-            })
-            .then(() => {
+            try {
+                await apiRequest('/logout', 'GET');
                 window.location.href = '/login';
-            })
-            .catch(error => {
+            } catch (error) {
                 console.error('Logout error:', error);
                 window.location.href = '/login';
-            });
+            }
         });
     }
 }
 
-// User Management
+// ======================
+// SETTINGS MANAGEMENT
+// ======================
+
+/**
+ * Initialize settings management
+ */
+function initSettingsManagement() {
+    const saveBtn = document.getElementById('save-settings-btn');
+    if (!saveBtn) return;
+
+    saveBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        await saveSettings();
+    });
+}
+
+/**
+ * Save system settings
+ */
+async function saveSettings() {
+    const saveBtn = document.getElementById('save-settings-btn');
+    const originalText = saveBtn.textContent;
+    
+    try {
+        // Get form values
+        const duration = parseInt(document.getElementById('slot-duration').value);
+        const startTime = document.getElementById('day-start').value;
+        const endTime = document.getElementById('day-end').value;
+
+        // Validation
+        if (isNaN(duration) throw new Error('Duration must be a number');
+        if (duration <= 0) throw new Error('Duration must be positive');
+        if (!startTime || !endTime) throw new Error('Please fill all fields');
+
+        // Show loading state
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Saving...';
+
+        // Send request
+        const response = await apiRequest('/api/settings', 'POST', {
+            slot_duration_minutes: duration,
+            day_start_time: startTime,
+            day_end_time: endTime
+        });
+
+        // Show success message
+        showNotification(response.message || 'Settings saved successfully', 'success');
+        
+    } catch (error) {
+        console.error('Save settings error:', error);
+        showNotification(error.message || 'Error saving settings', 'error');
+    } finally {
+        // Restore button state
+        saveBtn.disabled = false;
+        saveBtn.textContent = originalText;
+    }
+}
+
+// ======================
+// USER MANAGEMENT
+// ======================
+
+/**
+ * Initialize user management
+ */
 function initUserManagement() {
-    console.log('Setting up user management');
-    
-    // Добавление пользователя
-    const addUserBtn = document.getElementById('add-user-btn');
-    if (addUserBtn) {
-        console.log('Add User button found, adding event listener');
-        addUserBtn.addEventListener('click', function(e) {
+    const addBtn = document.getElementById('add-user-btn');
+    if (addBtn) {
+        addBtn.addEventListener('click', async (e) => {
             e.preventDefault();
-            console.log('Add User button clicked');
-            addUser();
+            await addUser();
         });
-    } else {
-        console.error('Add User button NOT found!');
     }
     
-    // Удаление пользователя
-    const deleteButtons = document.querySelectorAll('.user-list .delete-btn');
-    console.log(`Found ${deleteButtons.length} delete buttons`);
-    
-    deleteButtons.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const userId = this.getAttribute('data-id');
-            console.log('Delete user clicked:', userId);
-            deleteUser(userId);
+    document.querySelectorAll('.user-list .delete-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            await deleteUser(btn.getAttribute('data-id'));
         });
     });
 }
 
-function addUser() {
-    console.log('Starting addUser function');
-    
-    const login = document.getElementById('user-login').value;
-    const password = document.getElementById('user-password').value;
-    const fullName = document.getElementById('user-fullname').value;
-    const birthDate = document.getElementById('user-birthdate').value;
-    const gender = document.getElementById('user-gender').value;
-    
-    console.log('Form values:', {login, password, fullName, birthDate, gender});
-    
-    // Валидация
-    if (!login || !password || !fullName) {
-        const errorMsg = 'Please fill all required fields (Login, Password, Full Name)';
-        console.error(errorMsg);
-        alert(errorMsg);
-        return;
-    }
-
-    console.log('Sending request to /api/users');
-    
-    fetch('/api/users', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            login,
-            password,
-            full_name: fullName,
-            birth_date: birthDate || null,
-            gender: gender || 'male',
+/**
+ * Add new user
+ */
+async function addUser() {
+    try {
+        const userData = {
+            login: document.getElementById('user-login').value,
+            password: document.getElementById('user-password').value,
+            full_name: document.getElementById('user-fullname').value,
+            birth_date: document.getElementById('user-birthdate').value || null,
+            gender: document.getElementById('user-gender').value || 'male',
             role: 'user'
-        }),
-        credentials: 'include'
-    })
-    .then(response => {
-        console.log('Received response, status:', response.status);
-        if (!response.ok) {
-            return response.json().then(err => { 
-                console.error('Server error:', err);
-                throw err; 
-            });
+        };
+        
+        // Validation
+        if (!userData.login || !userData.password || !userData.full_name) {
+            throw new Error('Please fill all required fields');
         }
-        return response.json();
-    })
-    .then(data => {
-        console.log('User created successfully:', data);
-        alert('User created successfully!');
+        
+        // Send request
+        await apiRequest('/api/users', 'POST', userData);
+        
+        // Success
+        showNotification('User created successfully', 'success');
         location.reload();
-    })
-    .catch(error => {
-        console.error('Error in addUser:', error);
-        alert('Error creating user: ' + (error.message || JSON.stringify(error)));
-    });
-}
-
-function deleteUser(userId) {
-    if (!confirm('Are you sure you want to delete this user?')) {
-        console.log('User deletion cancelled');
-        return;
+        
+    } catch (error) {
+        console.error('Add user error:', error);
+        showNotification(error.message, 'error');
     }
-    
-    console.log('Deleting user with ID:', userId);
-    
-    fetch(`/api/users/${userId}`, {
-        method: 'DELETE',
-        credentials: 'same-origin'
-    })
-    .then(response => {
-        if (response.ok) {
-            console.log('User deleted successfully');
-            location.reload();
-        } else {
-            console.error('Failed to delete user, status:', response.status);
-            throw new Error('User deletion failed');
-        }
-    })
-    .catch(error => {
-        console.error('Error deleting user:', error);
-        alert('Error deleting user: ' + error.message);
-    });
 }
 
-// Manager Management
-function initManagerManagement() {
-    console.log('Initializing manager management');
+/**
+ * Delete user
+ */
+async function deleteUser(userId) {
+    if (!confirm('Are you sure you want to delete this user?')) return;
     
-    const addManagerBtn = document.getElementById('add-manager-btn');
-    if (addManagerBtn) {
-        addManagerBtn.addEventListener('click', function(e) {
+    try {
+        await apiRequest(`/api/users/${userId}`, 'DELETE');
+        showNotification('User deleted successfully', 'success');
+        location.reload();
+    } catch (error) {
+        console.error('Delete user error:', error);
+        showNotification(error.message, 'error');
+    }
+}
+
+// ======================
+// MANAGER MANAGEMENT
+// ======================
+
+/**
+ * Initialize manager management
+ */
+function initManagerManagement() {
+    const addBtn = document.getElementById('add-manager-btn');
+    if (addBtn) {
+        addBtn.addEventListener('click', async (e) => {
             e.preventDefault();
-            addManager();
+            await addManager();
         });
     }
     
     document.querySelectorAll('.manager-list .delete-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const managerId = this.getAttribute('data-id');
-            deleteManager(managerId);
+        btn.addEventListener('click', async () => {
+            await deleteManager(btn.getAttribute('data-id'));
         });
     });
 }
 
-function addManager() {
-    const login = document.getElementById('manager-login').value;
-    const password = document.getElementById('manager-password').value;
-    
-    if (!login || !password) {
-        alert('Please enter both login and password');
-        return;
-    }
-    
-    fetch('/api/users', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            login,
-            password,
+/**
+ * Add new manager
+ */
+async function addManager() {
+    try {
+        const managerData = {
+            login: document.getElementById('manager-login').value,
+            password: document.getElementById('manager-password').value,
             full_name: 'New Manager',
             birth_date: '2000-01-01',
             gender: 'male',
             role: 'manager'
-        }),
-        credentials: 'same-origin'
-    })
-    .then(response => {
-        if (response.ok) {
-            return response.json();
+        };
+        
+        if (!managerData.login || !managerData.password) {
+            throw new Error('Please enter both login and password');
         }
-        throw new Error('Manager creation failed');
-    })
-    .then(data => {
-        alert('Manager created successfully');
+        
+        await apiRequest('/api/users', 'POST', managerData);
+        showNotification('Manager created successfully', 'success');
         location.reload();
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error creating manager: ' + error.message);
-    });
+    } catch (error) {
+        console.error('Add manager error:', error);
+        showNotification(error.message, 'error');
+    }
 }
 
-function deleteManager(managerId) {
+/**
+ * Delete manager
+ */
+async function deleteManager(managerId) {
     if (!confirm('Are you sure you want to delete this manager?')) return;
     
-    fetch(`/api/users/${managerId}`, {
-        method: 'DELETE',
-        credentials: 'same-origin'
-    })
-    .then(response => {
-        if (response.ok) {
-            location.reload();
-        } else {
-            throw new Error('Manager deletion failed');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error deleting manager: ' + error.message);
-    });
+    try {
+        await apiRequest(`/api/users/${managerId}`, 'DELETE');
+        showNotification('Manager deleted successfully', 'success');
+        location.reload();
+    } catch (error) {
+        console.error('Delete manager error:', error);
+        showNotification(error.message, 'error');
+    }
 }
 
-// Item Management
+// ======================
+// ITEM MANAGEMENT
+// ======================
+
+/**
+ * Initialize item management
+ */
 function initItemManagement() {
-    console.log('Initializing item management');
-    
-    const addItemBtn = document.getElementById('add-item-btn');
-    if (addItemBtn) {
-        addItemBtn.addEventListener('click', function(e) {
+    const addBtn = document.getElementById('add-item-btn');
+    if (addBtn) {
+        addBtn.addEventListener('click', async (e) => {
             e.preventDefault();
-            addItem();
+            await addItem();
         });
     }
     
     document.querySelectorAll('.item-list .delete-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const itemId = this.getAttribute('data-id');
-            deleteItem(itemId);
+        btn.addEventListener('click', async () => {
+            await deleteItem(btn.getAttribute('data-id'));
         });
     });
 }
 
-function addItem() {
-    const name = document.getElementById('item-name').value;
-    
-    if (!name) {
-        alert('Please enter item name');
-        return;
-    }
-    
-    fetch('/api/booking-items', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name }),
-        credentials: 'same-origin'
-    })
-    .then(response => {
-        if (response.ok) {
-            return response.json();
-        }
-        throw new Error('Item creation failed');
-    })
-    .then(data => {
-        alert('Item created successfully');
+/**
+ * Add new booking item
+ */
+async function addItem() {
+    try {
+        const name = document.getElementById('item-name').value;
+        if (!name) throw new Error('Please enter item name');
+        
+        await apiRequest('/api/booking-items', 'POST', { name });
+        showNotification('Item created successfully', 'success');
         location.reload();
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error creating item: ' + error.message);
-    });
+    } catch (error) {
+        console.error('Add item error:', error);
+        showNotification(error.message, 'error');
+    }
 }
 
-function deleteItem(itemId) {
+/**
+ * Delete booking item
+ */
+async function deleteItem(itemId) {
     if (!confirm('Are you sure you want to delete this item?')) return;
     
-    fetch(`/api/booking-items/${itemId}`, {
-        method: 'DELETE',
-        credentials: 'same-origin'
-    })
-    .then(response => {
-        if (response.ok) {
-            location.reload();
-        } else {
-            throw new Error('Item deletion failed');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error deleting item: ' + error.message);
-    });
-}
-
-// Settings Management
-function initSettingsManagement() {
-    console.log('Initializing settings management');
-    
-    const saveSettingsBtn = document.getElementById('save-settings-btn');
-    if (saveSettingsBtn) {
-        saveSettingsBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            saveSettings();
-        });
+    try {
+        await apiRequest(`/api/booking-items/${itemId}`, 'DELETE');
+        showNotification('Item deleted successfully', 'success');
+        location.reload();
+    } catch (error) {
+        console.error('Delete item error:', error);
+        showNotification(error.message, 'error');
     }
 }
 
-function saveSettings() {
-    const duration = document.getElementById('slot-duration').value;
-    const startTime = document.getElementById('day-start').value;
-    const endTime = document.getElementById('day-end').value;
-    
-    fetch('/api/settings', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            slot_duration_minutes: parseInt(duration),
-            day_start_time: startTime,
-            day_end_time: endTime
-        }),
-        credentials: 'same-origin'
-    })
-    .then(response => {
-        if (response.ok) {
-            return response.json();
-        }
-        throw new Error('Settings save failed');
-    })
-    .then(data => {
-        alert('Settings saved successfully');
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error saving settings: ' + error.message);
+// ======================
+// BOOKING MANAGEMENT
+// ======================
+
+/**
+ * Initialize booking management
+ */
+function initBookingManagement() {
+    document.querySelectorAll('.cancel-booking-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            await cancelBooking(btn.getAttribute('data-booking-id'));
+        });
     });
 }
 
-// Date Management
+/**
+ * Cancel booking
+ */
+async function cancelBooking(bookingId) {
+    if (!confirm('Are you sure you want to cancel this booking?')) return;
+    
+    try {
+        await apiRequest(`/api/booking-slots/${bookingId}/cancel`, 'POST');
+        showNotification('Booking cancelled successfully', 'success');
+        location.reload();
+    } catch (error) {
+        console.error('Cancel booking error:', error);
+        showNotification(error.message, 'error');
+    }
+}
+
+// ======================
+// DATE MANAGEMENT
+// ======================
+
+/**
+ * Initialize date management
+ */
 function initDateManagement() {
-    console.log('Initializing date management');
-    
     document.querySelectorAll('.toggle-date-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const date = this.getAttribute('data-date');
-            const action = this.textContent === 'Disable' ? 'disable' : 'enable';
-            toggleDateAvailability(date, action, this);
+        btn.addEventListener('click', async () => {
+            const date = btn.getAttribute('data-date');
+            const action = btn.textContent === 'Disable' ? 'disable' : 'enable';
+            await toggleDateAvailability(date, action, btn);
         });
     });
 }
 
-function toggleDateAvailability(date, action, button) {
-    fetch(`/api/dates/${date}/availability`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ action }),
-        credentials: 'same-origin'
-    })
-    .then(response => {
-        if (response.ok) {
-            return response.json();
-        }
-        throw new Error('Date toggle failed');
-    })
-    .then(data => {
+/**
+ * Toggle date availability
+ */
+async function toggleDateAvailability(date, action, button) {
+    try {
+        await apiRequest(`/api/dates/${date}/availability`, 'POST', { action });
         button.textContent = action === 'disable' ? 'Enable' : 'Disable';
-        alert(`Date ${date} ${action}d successfully`);
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error toggling date availability: ' + error.message);
-    });
+        showNotification(`Date ${date} ${action}d successfully`, 'success');
+    } catch (error) {
+        console.error('Toggle date error:', error);
+        showNotification(error.message, 'error');
+    }
 }
 
-// Slot Management
+// ======================
+// SLOT MANAGEMENT
+// ======================
+
+/**
+ * Initialize slot management
+ */
 function initSlotManagement() {
-    console.log('Initializing slot management');
-    
     document.querySelectorAll('.item-list li').forEach(item => {
-        item.addEventListener('click', function() {
-            const itemId = this.getAttribute('data-item-id');
-            loadAvailableSlots(itemId);
+        item.addEventListener('click', async () => {
+            await loadAvailableSlots(item.getAttribute('data-item-id'));
         });
     });
 }
 
-function loadAvailableSlots(itemId) {
-    const date = new Date().toISOString().split('T')[0]; // Сегодняшняя дата
-    
-    fetch(`/api/booking-slots?date=${date}&item_id=${itemId}`, {
-        credentials: 'same-origin'
-    })
-    .then(response => {
-        if (response.ok) {
-            return response.json();
-        }
-        throw new Error('Failed to load slots');
-    })
-    .then(slots => {
+/**
+ * Load available slots for item
+ */
+async function loadAvailableSlots(itemId) {
+    try {
+        const date = new Date().toISOString().split('T')[0];
+        const slots = await apiRequest(`/api/booking-slots?date=${date}&item_id=${itemId}`, 'GET');
         renderSlots(slots);
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error loading slots: ' + error.message);
-    });
+    } catch (error) {
+        console.error('Load slots error:', error);
+        showNotification(error.message, 'error');
+    }
 }
 
+/**
+ * Render slots list
+ */
 function renderSlots(slots) {
     const container = document.getElementById('slot-list-container');
-    container.innerHTML = '';
-    
-    if (slots.length === 0) {
-        container.innerHTML = '<p>No available slots for this item</p>';
-        return;
-    }
+    container.innerHTML = slots.length ? '' : '<p>No available slots for this item</p>';
     
     const list = document.createElement('ul');
     list.className = 'slot-list';
@@ -489,95 +427,168 @@ function renderSlots(slots) {
     
     container.appendChild(list);
     
-    // Добавляем обработчики для новых кнопок
+    // Add event listeners to new buttons
     document.querySelectorAll('.book-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const slotId = this.getAttribute('data-slot-id');
-            bookSlot(slotId);
+        btn.addEventListener('click', async () => {
+            await bookSlot(btn.getAttribute('data-slot-id'));
         });
     });
     
     document.querySelectorAll('.block-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const slotId = this.getAttribute('data-slot-id');
-            blockSlot(slotId);
+        btn.addEventListener('click', async () => {
+            await blockSlot(btn.getAttribute('data-slot-id'));
         });
     });
 }
 
-function bookSlot(slotId) {
-    fetch(`/api/booking-slots/${slotId}/book`, {
-        method: 'POST',
-        credentials: 'same-origin'
-    })
-    .then(response => {
-        if (response.ok) {
-            return response.json();
-        }
-        throw new Error('Booking failed');
-    })
-    .then(data => {
-        alert('Slot booked successfully');
+/**
+ * Book slot
+ */
+async function bookSlot(slotId) {
+    try {
+        await apiRequest(`/api/booking-slots/${slotId}/book`, 'POST');
+        showNotification('Slot booked successfully', 'success');
         location.reload();
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error booking slot: ' + error.message);
-    });
+    } catch (error) {
+        console.error('Book slot error:', error);
+        showNotification(error.message, 'error');
+    }
 }
 
-function blockSlot(slotId) {
-    fetch(`/api/booking-slots/${slotId}/block`, {
-        method: 'POST',
-        credentials: 'same-origin'
-    })
-    .then(response => {
-        if (response.ok) {
-            return response.json();
-        }
-        throw new Error('Blocking failed');
-    })
-    .then(data => {
-        alert('Slot blocked successfully');
+/**
+ * Block slot
+ */
+async function blockSlot(slotId) {
+    try {
+        await apiRequest(`/api/booking-slots/${slotId}/block`, 'POST');
+        showNotification('Slot blocked successfully', 'success');
         location.reload();
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error blocking slot: ' + error.message);
-    });
+    } catch (error) {
+        console.error('Block slot error:', error);
+        showNotification(error.message, 'error');
+    }
 }
 
-// Booking Management
-function initBookingManagement() {
-    console.log('Initializing booking management');
+// ======================
+// API HELPER FUNCTIONS
+// ======================
+
+/**
+ * Make API request with error handling
+ */
+async function apiRequest(url, method, body = null) {
+    const options = {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+    };
     
-    document.querySelectorAll('.cancel-booking-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const bookingId = this.getAttribute('data-booking-id');
-            cancelBooking(bookingId);
-        });
+    if (body) options.body = JSON.stringify(body);
+    
+    const response = await fetch(url, options);
+    
+    // Handle empty response (204 No Content)
+    if (response.status === 204) {
+        return { status: 'success' };
+    }
+    
+    // Try to read response text
+    const text = await response.text();
+    
+    if (!response.ok) {
+        // Try to parse error JSON
+        try {
+            const error = text ? JSON.parse(text) : {};
+            throw new Error(error.error || error.message || 'Request failed');
+        } catch {
+            throw new Error(text || 'Request failed');
+        }
+    }
+    
+    // Try to parse successful JSON
+    try {
+        return text ? JSON.parse(text) : {};
+    } catch {
+        throw new Error('Invalid server response');
+    }
+}
+
+/**
+ * Show notification message
+ */
+function showNotification(message, type = 'info') {
+    // Remove existing notifications
+    const oldNotif = document.querySelector('.custom-notification');
+    if (oldNotif) oldNotif.remove();
+    
+    // Create notification element
+    const notif = document.createElement('div');
+    notif.className = `custom-notification ${type}`;
+    notif.innerHTML = `
+        <div class="notification-content">
+            <p>${message}</p>
+            <button class="close-notification">×</button>
+        </div>
+    `;
+    
+    // Add to DOM
+    document.body.appendChild(notif);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => notif.classList.add('fade-out'), 5000);
+    setTimeout(() => notif.remove(), 5300);
+    
+    // Manual close
+    notif.querySelector('.close-notification').addEventListener('click', () => {
+        notif.classList.add('fade-out');
+        setTimeout(() => notif.remove(), 300);
     });
 }
 
-function cancelBooking(bookingId) {
-    if (!confirm('Are you sure you want to cancel this booking?')) return;
-    
-    fetch(`/api/booking-slots/${bookingId}/cancel`, {
-        method: 'POST',
-        credentials: 'same-origin'
-    })
-    .then(response => {
-        if (response.ok) {
-            return response.json();
-        }
-        throw new Error('Cancellation failed');
-    })
-    .then(data => {
-        alert('Booking cancelled successfully');
-        location.reload();
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error cancelling booking: ' + error.message);
-    });
-}
+// ======================
+// NOTIFICATION STYLES
+// ======================
+
+const style = document.createElement('style');
+style.textContent = `
+    .custom-notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px;
+        border-radius: 5px;
+        color: white;
+        background: #2196F3;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        z-index: 1000;
+        transition: all 0.3s ease;
+        max-width: 300px;
+    }
+    .custom-notification.success {
+        background: #4CAF50;
+    }
+    .custom-notification.error {
+        background: #F44336;
+    }
+    .custom-notification.info {
+        background: #2196F3;
+    }
+    .custom-notification.fade-out {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    .notification-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .close-notification {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 20px;
+        cursor: pointer;
+        margin-left: 15px;
+    }
+`;
+document.head.appendChild(style);
