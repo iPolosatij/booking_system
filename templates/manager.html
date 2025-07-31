@@ -56,31 +56,50 @@
     </div>
 
     <div class="tab-content" id="dates">
-        <h2>Manage Booking Dates</h2>
-        <div class="date-controls">
-            <h3>Available Dates (next 7 days)</h3>
-            <ul class="date-list">
-                {{range .AvailableDates}}
-                <li class="date-item" data-date="{{.}}">
-                    <span class="date-value">{{.}}</span>
-                    <button class="toggle-date-btn" data-date="{{.}}">Disable</button>
-                </li>
-                {{end}}
-            </ul>
-        </div>
-        <div class="slot-controls">
-            <h3>Booking Items</h3>
-            <ul class="item-list">
-                {{range .Items}}
-                <li class="item" data-item-id="{{.ID}}">
-                    <span class="item-name">{{.Name}}</span>
-                </li>
-                {{end}}
-            </ul>
-            <div id="slot-list-container" class="slot-list"></div>
+        <h2>Manage Booking</h2>
+        <div class="booking-management">
+            <div class="item-controls">
+                <h3>Booking Items</h3>
+                <ul class="item-list">
+                    {{range .Items}}
+                    <li class="item" data-item-id="{{.ID}}">
+                        <span class="item-name">{{.Name}}</span>
+                        <button class="edit-slots-btn" data-item-id="{{.ID}}">Edit Slots</button>
+                    </li>
+                    {{end}}
+                </ul>
+            </div>
+
+            <div class="slot-editor" id="slot-editor" style="display: none;">
+                <h3>Edit Slots for: <span id="current-item-name"></span></h3>
+                <div class="slot-form">
+                    <div class="form-group">
+                        <label>Date</label>
+                        <input type="date" id="slot-date">
+                    </div>
+                    <div class="form-group">
+                        <label>Start Time</label>
+                        <input type="time" id="slot-start-time">
+                    </div>
+                    <div class="form-group">
+                        <label>End Time</label>
+                        <input type="time" id="slot-end-time">
+                    </div>
+                    <button id="add-slot-btn" class="submit-btn">Add Slot</button>
+                </div>
+
+                <div class="current-slots">
+                    <h4>Current Slots</h4>
+                    <ul class="slot-list" id="slot-list">
+                        <!-- Slots will be loaded here -->
+                    </ul>
+                    <button id="save-slots-btn" class="submit-btn">Save Changes</button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+<script type="module" src="/static/js/features/manager.js"></script>
 <script type="module" src="/static/js/core/init.js"></script>
 </body>
 </html>

@@ -22,9 +22,15 @@
     <div class="tab-content active" id="managers">
         <h2>Manage Managers</h2>
         <div class="add-manager">
-            <input type="text" id="manager-login" placeholder="Login">
-            <input type="password" id="manager-password" placeholder="Password">
-            <button id="add-manager-btn">Add Manager</button>
+            <input type="text" id="manager-login" placeholder="Логин" required>
+            <input type="password" id="manager-password" placeholder="Пароль" required>
+            <input type="text" id="manager-fullname" placeholder="Полное имя">
+            <input type="date" id="manager-birthdate" required>
+            <select id="manager-gender" required>
+                <option value="male">Мужской</option>
+                <option value="female">Женский</option>
+            </select>
+            <button id="add-manager-btn">Добавить менеджера</button>
         </div>
         <ul class="manager-list">
             {{range .Managers}}
@@ -44,12 +50,19 @@
         </div>
         <ul class="item-list">
             {{range .Items}}
-            <li>
+            <li data-item-id="{{.ID}}">
                 <span>{{.Name}}</span>
                 <button class="delete-btn" data-id="{{.ID}}">Delete</button>
             </li>
             {{end}}
         </ul>
+        
+        <div class="slot-management">
+            <h3>Available Booking Slots</h3>
+            <div id="slot-list-container">
+                <p class="no-slots">Select an item to view available slots</p>
+            </div>
+        </div>
     </div>
 
     <div class="tab-content" id="settings">
@@ -70,5 +83,6 @@
     </div>
 </div>
 <script type="module" src="/static/js/core/init.js"></script>
+<script type="module" src="/static/js/features/admin.js"></script>
 </body>
 </html>

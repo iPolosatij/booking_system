@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func AdminHandler(w http.ResponseWriter, r *http.Request) {
@@ -202,4 +203,63 @@ func respondWithJSON(w http.ResponseWriter, statusCode int, payload interface{})
 		log.Printf("Error encoding JSON response: %v", err)
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 	}
+}
+
+func ApiCreateManagerHandler(w http.ResponseWriter, r *http.Request) {
+	session, _ := models.Store.Get(r, "session")
+	role, ok := session.Values["role"].(string)
+	if !ok || role != "admin" {
+		respondWithJSON(w, http.StatusUnauthorized, map[string]string{"error": "Unauthorized"})
+		return
+	}
+
+	var manager struct {
+		Login     string `json:"login"`
+		Password  string `json:"password"`
+		FullName  string `json:"full_name"`
+		BirthDate string `json:"birth_date"`
+		Gender    string `json:"gender"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&manager); err != nil {
+		respondWithJSON(w, http.StatusBadRequest, map[string]string{"error": "Invalid request"})
+		return
+	}
+
+	// Валидация
+	if manager.Login == "" || manager.Password == "" {
+		respondWithJSON(w, http.StatusBadRequest, map[string]string{"error": "Login and password are required"})
+		return
+	}
+
+	// Установка значений по умолчанию, если не указаны
+	if manager.BirthDate == "" {
+		manager.BirthDate = "2000-01-01" // Значение по умолчанию
+	}
+	if manager.Gender == "" {
+		manager.Gender = "other" // Значение по умолчанию
+	}
+
+	// Хеширование пароля перед сохранением
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(manager.Password), bcrypt.DefaultCost)
+	if err != nil {
+		respondWithJSON(w, http.StatusInternalServerError, map[string]string{"error": "Password hashing failed"})
+		return
+	}
+
+	_, err = models.DB.Exec(
+		"INSERT INTO users (login, password, full_name, role, birth_date, gender) VALUES ($1, $2, $3, 'manager', $4, $5)",
+		manager.Login,
+		hashedPassword,
+		manager.FullName,
+		manager.BirthDate,
+		manager.Gender,
+	)
+
+	if err != nil {
+		respondWithJSON(w, http.StatusInternalServerError, map[string]string{"error": "Database error: " + err.Error()})
+		return
+	}
+
+	respondWithJSON(w, http.StatusCreated, map[string]string{"status": "success"})
 }

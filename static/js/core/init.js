@@ -11,6 +11,7 @@ import { initItemManagement } from '../features/item.js';
 import { initDateManagement } from '../features/date.js';
 import { initBookingManagement } from '../features/booking.js';
 import { initSlotManagement } from '../features/slot.js';
+import { initAdminManagement } from '../features/admin.js';
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Booking System initialized');
@@ -25,4 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (document.querySelector('.date-list')) initDateManagement();
     if (document.querySelector('.booking-list')) initBookingManagement();
     if (document.querySelector('.item-list')) initSlotManagement();
+    if (document.querySelector('.admin-container')) {
+        initAdminManagement();
+    }
 });
