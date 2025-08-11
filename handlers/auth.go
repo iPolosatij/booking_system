@@ -21,7 +21,12 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
-		models.Tmpl.ExecuteTemplate(w, "login.html", nil)
+		log.Println("DEBUG: Attempting to render login.html") // Добавьте это
+		err := models.Tmpl.ExecuteTemplate(w, "login.html", nil)
+		if err != nil {
+			log.Printf("DEBUG: Template error: %v", err) // Логируем ошибку рендеринга
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		}
 		return
 	}
 
