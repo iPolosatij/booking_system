@@ -29,41 +29,18 @@ function initUserManagement() {
 }
 
 function initSlotManagement() {
-    const editButtons = document.querySelectorAll('.edit-slots-btn');
-    if (!editButtons.length) {
-        console.warn('No edit-slots-btn elements found');
-        return;
-    }
-
-    editButtons.forEach(btn => {
-        btn.addEventListener('click', async () => {
-            const itemId = btn.getAttribute('data-item-id');
-            const itemElement = btn.closest('.item');
-
-            if (!itemElement) {
-                console.error('Could not find parent item element');
-                return;
-            }
-
-            const itemName = itemElement.querySelector('.item-name')?.textContent || 'Unknown Item';
-            await openSlotEditor(itemId, itemName);
-        });
+    document.querySelector('.booking-management').addEventListener('click', async (e) => {
+        const btn = e.target.closest('.edit-slots-btn');
+        if (!btn) return;
+        
+        e.stopPropagation();
+        const itemId = btn.getAttribute('data-item-id');
+        const itemName = btn.closest('.item').querySelector('.item-name')?.textContent || 'Unknown Item';
+        await openSlotEditor(itemId, itemName);
     });
 
-    const addSlotBtn = document.getElementById('add-slot-btn');
-    const saveSlotsBtn = document.getElementById('save-slots-btn');
-
-    if (addSlotBtn) {
-        addSlotBtn.addEventListener('click', addNewSlot);
-    } else {
-        console.warn('Add slot button not found');
-    }
-
-    if (saveSlotsBtn) {
-        saveSlotsBtn.addEventListener('click', saveSlots);
-    } else {
-        console.warn('Save slots button not found');
-    }
+    document.getElementById('add-slot-btn')?.addEventListener('click', addNewSlot);
+    document.getElementById('save-slots-btn')?.addEventListener('click', saveSlots);
 }
 
 async function addUser() {
@@ -78,47 +55,39 @@ async function addUser() {
         };
 
         if (!userData.login || !userData.password || !userData.full_name) {
-            throw new Error('Пожалуйста, заполните все обязательные поля');
+            throw new Error('Заполните все обязательные поля');
         }
 
         await apiRequest('/api/users', 'POST', userData);
-        showNotification('Пользователь успешно создан', 'success');
+        showNotification('Пользователь создан', 'success');
         location.reload();
     } catch (error) {
-        console.error('Ошибка создания пользователя:', error);
-        showNotification(error.message || 'Не удалось создать пользователя', 'error');
+        console.error('Ошибка:', error);
+        showNotification(error.message, 'error');
     }
 }
 
 async function deleteUser(userId) {
-    if (!confirm('Вы уверены, что хотите удалить этого пользователя?')) return;
-
+    if (!confirm('Удалить пользователя?')) return;
     try {
         await apiRequest(`/api/users/${userId}`, 'DELETE');
-        showNotification('Пользователь успешно удалён', 'success');
+        showNotification('Пользователь удален', 'success');
         location.reload();
     } catch (error) {
-        console.error('Ошибка удаления пользователя:', error);
-        showNotification(error.message || 'Не удалось удалить пользователя', 'error');
+        console.error('Ошибка:', error);
+        showNotification(error.message, 'error');
     }
 }
 
 async function openSlotEditor(itemId, itemName) {
     if (!itemId) {
-        console.error('Не указан ID товара');
-        showNotification('Не выбран товар', 'error');
+        showNotification('Не выбран объект', 'error');
         return;
     }
 
     const editor = document.getElementById('slot-editor');
     const itemNameElement = document.getElementById('current-item-name');
     const slotListElement = document.getElementById('slot-list');
-
-    if (!editor || !itemNameElement || !slotListElement) {
-        console.error('Не найдены необходимые элементы редактора');
-        showNotification('Системная ошибка: отсутствуют компоненты редактора', 'error');
-        return;
-    }
 
     currentItemId = itemId;
     itemNameElement.textContent = itemName;
@@ -128,40 +97,26 @@ async function openSlotEditor(itemId, itemName) {
         const slots = await apiRequest(`/api/items/${itemId}/slots`, 'GET');
         renderSlots(slots || []);
     } catch (error) {
-        console.error('Ошибка загрузки слотов:', error);
-        showNotification('Не удалось загрузить временные слоты', 'error');
+        console.error('Ошибка:', error);
+        showNotification('Ошибка загрузки слотов', 'error');
         renderSlots([]);
     }
 }
 
 function renderSlots(slots) {
     const slotList = document.getElementById('slot-list');
-    if (!slotList) {
-        console.error('Элемент списка слотов не найден');
-        return;
-    }
-
-    // Защита от null/undefined
-    slots = slots || [];
-    
     slotList.innerHTML = '';
 
     if (slots.length === 0) {
-        slotList.innerHTML = '<li class="no-slots">Нет доступных временных слотов</li>';
+        slotList.innerHTML = '<li class="no-slots">Нет слотов</li>';
         return;
     }
 
     slots.forEach(slot => {
-        if (!slot.id || !slot.date || !slot.start_time || !slot.end_time) {
-            console.warn('Некорректные данные слота:', slot);
-            return;
-        }
-
         const li = document.createElement('li');
         li.className = 'slot-item';
         li.innerHTML = `
             <span class="slot-time">${slot.date} ${slot.start_time} - ${slot.end_time}</span>
-            <span class="slot-status">${slot.is_available ? 'Доступен' : 'Забронирован'}</span>
             <button class="delete-slot-btn" data-slot-id="${slot.id}">Удалить</button>
         `;
         slotList.appendChild(li);
@@ -169,103 +124,56 @@ function renderSlots(slots) {
 
     document.querySelectorAll('.delete-slot-btn').forEach(btn => {
         btn.addEventListener('click', async () => {
-            const slotId = btn.getAttribute('data-slot-id');
-            if (!slotId) {
-                console.error('Не найден ID слота для удаления');
-                return;
-            }
-            await deleteSlot(slotId);
+            await deleteSlot(btn.getAttribute('data-slot-id'));
         });
     });
 }
 
 async function addNewSlot() {
-    if (!currentItemId) {
-        showNotification('Не выбран товар', 'error');
-        return;
-    }
-
-    const dateInput = document.getElementById('slot-date');
-    const startTimeInput = document.getElementById('slot-start-time');
-    const endTimeInput = document.getElementById('slot-end-time');
-
-    if (!dateInput || !startTimeInput || !endTimeInput) {
-        showNotification('Не заполнены обязательные поля', 'error');
-        return;
-    }
-
     try {
         const slotData = {
             item_id: currentItemId,
-            date: dateInput.value,
-            start_time: startTimeInput.value,
-            end_time: endTimeInput.value,
+            date: document.getElementById('slot-date').value,
+            start_time: document.getElementById('slot-start-time').value,
+            end_time: document.getElementById('slot-end-time').value,
             is_available: true
         };
 
         if (!slotData.date || !slotData.start_time || !slotData.end_time) {
-            throw new Error('Пожалуйста, заполните все поля слота');
-        }
-
-        if (slotData.start_time >= slotData.end_time) {
-            throw new Error('Время окончания должно быть позже времени начала');
+            throw new Error('Заполните все поля');
         }
 
         await apiRequest('/api/slots', 'POST', slotData);
-        showNotification('Временной слот успешно добавлен', 'success');
-
-        // Обновляем список слотов
+        showNotification('Слот добавлен', 'success');
+        
         const slots = await apiRequest(`/api/items/${currentItemId}/slots`, 'GET');
         renderSlots(slots || []);
-
-        // Очищаем форму
-        dateInput.value = '';
-        startTimeInput.value = '';
-        endTimeInput.value = '';
     } catch (error) {
-        console.error('Ошибка добавления слота:', error);
-        showNotification(error.message || 'Не удалось добавить временной слот', 'error');
+        console.error('Ошибка:', error);
+        showNotification(error.message, 'error');
     }
 }
 
 async function deleteSlot(slotId) {
-    if (!slotId) {
-        console.error('Не указан ID слота для удаления');
-        return;
-    }
-
-    if (!confirm('Вы уверены, что хотите удалить этот временной слот?')) return;
-
+    if (!confirm('Удалить слот?')) return;
     try {
         await apiRequest(`/api/slots/${slotId}`, 'DELETE');
-        showNotification('Временной слот успешно удалён', 'success');
-
-        // Обновляем список слотов
+        showNotification('Слот удален', 'success');
         const slots = await apiRequest(`/api/items/${currentItemId}/slots`, 'GET');
         renderSlots(slots || []);
     } catch (error) {
-        console.error('Ошибка удаления слота:', error);
-        showNotification(error.message || 'Не удалось удалить временной слот', 'error');
+        console.error('Ошибка:', error);
+        showNotification(error.message, 'error');
     }
 }
 
 async function saveSlots() {
-    if (!currentItemId) {
-        showNotification('Не выбран товар', 'error');
-        return;
-    }
-
     try {
         const slots = await apiRequest(`/api/items/${currentItemId}/slots`, 'GET');
-
-        if (!slots || !Array.isArray(slots)) {
-            throw new Error('Получены некорректные данные слотов');
-        }
-
         await apiRequest(`/api/items/${currentItemId}/slots`, 'PUT', slots);
-        showNotification('Все временные слоты успешно сохранены', 'success');
+        showNotification('Слоты сохранены', 'success');
     } catch (error) {
-        console.error('Ошибка сохранения слотов:', error);
-        showNotification(error.message || 'Не удалось сохранить временные слоты', 'error');
+        console.error('Ошибка:', error);
+        showNotification(error.message, 'error');
     }
 }

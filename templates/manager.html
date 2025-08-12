@@ -99,7 +99,10 @@
         </div>
     </div>
 </div>
-<script type="module" src="/static/js/features/manager.js"></script>
 <script type="module" src="/static/js/core/init.js"></script>
+<script type="module">
+    import { initManagerManagement } from '/static/js/features/manager.js';
+    document.addEventListener('DOMContentLoaded', initManagerManagement);
+</script>
 </body>
 </html>

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Бронирование</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<div class="booking-container">
+    <h1>Выберите объект</h1>
+    <ul class="item-list">
+        <!-- Список объектов будет здесь -->
+    </ul>
+    
+    <div id="slot-list-container"></div>
+</div>
+
+<script type="module">
+    import { initSlotManagement } from '/static/js/features/slot.js';
+    document.addEventListener('DOMContentLoaded', initSlotManagement);
+</script>
+</body>
+</html>
